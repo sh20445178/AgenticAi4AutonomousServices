@@ -1,0 +1,2 @@
+# Minimal requirements for simple_agent.py
+requests>=2.28.0
