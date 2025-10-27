@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgenticAI4DB - Intelligent Database Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/frontend/styles.css">
+    <link rel="stylesheet" href="/frontend/ml-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="custom-logo">
+                        <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="40" fill="url(#logoGradient)"/>
+                            <path d="M35 35 L65 35 L65 45 L35 45 Z M35 50 L55 50 L55 60 L35 60 Z M35 65 L65 65 L65 75 L35 75 Z" fill="white"/>
+                        </svg>
+                    </div>
+                    <h2>AgenticAI4DB</h2>
+                </div>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="status-section">
+                    <div class="status-item">
+                        <i class="fas fa-circle" id="statusIcon"></i>
+                        <span id="statusText">Connecting...</span>
+                    </div>
+                    <div class="model-info" id="modelInfo">
+                        <i class="fas fa-microchip"></i>
+                        <span>Gemini 2.5 Flash</span>
+                    </div>
+                </div>
+                
+                <div class="controls-section">
+                    <button class="control-btn" id="newChatBtn">
+                        <i class="fas fa-plus"></i> New Chat
+                    </button>
+                    <button class="control-btn" id="clearHistoryBtn">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                    <button class="control-btn" id="exportChatBtn">
+                        <i class="fas fa-download"></i> Export Chat
+                    </button>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Settings</h3>
+                    <div class="setting-item">
+                        <label for="temperatureSlider">Creativity</label>
+                        <input type="range" id="temperatureSlider" min="0" max="1" step="0.1" value="0.7">
+                        <span id="temperatureValue">0.7</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="maxTokensSlider">Max Length</label>
+                        <input type="range" id="maxTokensSlider" min="100" max="2000" step="100" value="1000">
+                        <span id="maxTokensValue">1000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <h1>AgenticAI4DB - Database Intelligence</h1>
+                    <p>Your AI-powered database assistant powered by Gemini 2.5 Flash</p>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" id="toggleSidebarBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="ai-avatar custom-avatar">
+                        <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="avatarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#34a853;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#ea4335;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="45" fill="url(#avatarGradient)"/>
+                            <circle cx="50" cy="50" r="35" fill="white" opacity="0.9"/>
+                            <path d="M30 40 L70 40 L70 48 L30 48 Z M30 52 L60 52 L60 60 L30 60 Z M30 64 L70 64 L70 72 L30 72 Z" fill="url(#avatarGradient)"/>
+                        </svg>
+                    </div>
+                    <div class="message-content">
+                        <h3>Welcome to AgenticAI4DB! �️✨</h3>
+                        <p>Your intelligent database assistant is here to help with database queries, data analysis, schema design, optimization, and much more. Let's explore your data together!</p>
+                        <div class="suggested-prompts">
+                            <button class="prompt-btn" data-prompt="Help me design an efficient database schema for an e-commerce platform">
+                                �️ Design database schema
+                            </button>
+                            <button class="prompt-btn" data-prompt="Write SQL queries to analyze customer purchase patterns">
+                                � SQL query optimization
+                            </button>
+                            <button class="prompt-btn" data-prompt="Explain database indexing strategies for better performance">
+                                ⚡ Database performance
+                            </button>
+                            <button class="prompt-btn" data-prompt="Help me migrate from MySQL to PostgreSQL">
+                                🔄 Database migration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="typing-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <span>AI is thinking...</span>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Type your message here... (Shift+Enter for new line)"
+                            rows="1"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button class="action-btn" id="attachBtn" title="Attach file">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button class="action-btn" id="micBtn" title="Voice input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                
+                <div class="input-footer">
+                    <span class="char-count" id="charCount">0 characters</span>
+                    <span class="help-text">Press Enter to send, Shift+Enter for new line</span>
+                    </div>
+                </div>
+            </div>
+        </div>    <!-- Error Toast -->
+    <div class="toast error-toast" id="errorToast">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorMessage"></span>
+        <button class="toast-close" onclick="hideToast('errorToast')">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <!-- Success Toast -->
+    <div class="toast success-toast" id="successToast">
+        <i class="fas fa-check-circle"></i>
+        <span id="successMessage"></span>
+        <button class="toast-close" onclick="hideToast('successToast')">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <script src="/frontend/script.js"></script>
+    <script src="/frontend/ml-dashboard.js"></script>
+</body>
+</html>
