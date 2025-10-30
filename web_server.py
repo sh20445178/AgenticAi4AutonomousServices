@@ -34,9 +34,25 @@ class GeminiWebAPI:
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
         
+        # System prompt for better responses
+        self.system_prompt = """You are an expert AI assistant for Database & Cloud Architecture.
+
+SPECIALIZATIONS:
+1. Database: SQL/NoSQL, schema design, optimization, indexing, migrations
+2. Cloud: Azure/AWS microservices, AKS/EKS, API gateways, Service Bus/SQS
+3. Architecture: Microservices design, monolith breakdown, DevOps pipelines
+
+RESPONSE FORMAT:
+- Provide actionable solutions with code examples
+- Use clear structure: headers, bullets, code blocks
+- Include specific service names and best practices
+- Add security and scalability considerations
+
+Keep responses concise but comprehensive."""
+        
         print(f"✅ Gemini Web API initialized with model: {self.model}")
     
-    def _make_request(self, message: str, temperature: float = 0.7, max_tokens: int = 1000) -> str:
+    def _make_request(self, message: str, temperature: float = 0.7, max_tokens: int = 2000) -> str:
         """Make request to Gemini API"""
         url = f"{self.base_url}/{self.model}:generateContent?key={self.api_key}"
         
@@ -60,40 +76,98 @@ class GeminiWebAPI:
                 if response.status == 200:
                     result = json.loads(response.read().decode('utf-8'))
                     
+                    # Debug logging
+                    print(f"🔍 API Response: {json.dumps(result, indent=2)[:800]}...")
+                    
                     if 'candidates' in result and len(result['candidates']) > 0:
                         candidate = result['candidates'][0]
                         
+                        # Check for finish reason issues
+                        finish_reason = candidate.get('finishReason', '')
+                        if finish_reason == 'MAX_TOKENS':
+                            print(f"⚠️ Response truncated due to MAX_TOKENS limit")
+                        
+                        # Handle various response structures
                         if 'content' in candidate:
-                            if 'parts' in candidate['content']:
-                                return candidate['content']['parts'][0]['text']
+                            content = candidate['content']
+                            
+                            # Check for parts array
+                            if 'parts' in content and len(content['parts']) > 0:
+                                # Standard response format
+                                for part in content['parts']:
+                                    if 'text' in part and part['text']:
+                                        return part['text']
+                                
+                                print(f"⚠️ No text found in parts: {content['parts']}")
+                                
+                                # Check if there's thought process data
+                                if 'usageMetadata' in result and 'thoughtsTokenCount' in result['usageMetadata']:
+                                    thoughts_count = result['usageMetadata']['thoughtsTokenCount']
+                                    if thoughts_count > 0:
+                                        return "Error: Response generated but content is in internal thoughts only. Try reducing your query complexity or increasing max tokens."
+                                
+                                return "Error: Empty response from AI"
+                                
+                            elif isinstance(content, dict) and 'text' in content:
+                                # Alternative format
+                                return content['text']
+                            elif isinstance(content, dict) and 'role' in content and 'parts' not in content:
+                                # Response structure with only role - likely truncated
+                                print(f"⚠️ Content has only role, no parts: {content}")
+                                return "Error: Response was generated but appears truncated. Please try a simpler query or increase the max token limit in settings."
                             else:
-                                return candidate['content'].get('text', 'No text in content')
+                                print(f"⚠️ Unexpected content structure: {content}")
+                                return f"Error: Response content structure unexpected. Keys: {list(content.keys())}"
                         elif 'text' in candidate:
+                            # Direct text in candidate
                             return candidate['text']
                         else:
-                            return "Error: Unexpected response format"
+                            print(f"⚠️ Unexpected candidate structure: {candidate}")
+                            return f"Error: Unexpected response format. Keys: {list(candidate.keys())}"
+                    elif 'error' in result:
+                        # API returned an error
+                        error_msg = result['error'].get('message', 'Unknown API error')
+                        print(f"❌ API Error: {error_msg}")
+                        return f"API Error: {error_msg}"
                     else:
-                        return "Error: No response generated"
+                        print(f"⚠️ No candidates in response: {result}")
+                        return "Error: No response generated by AI"
                 else:
                     return f"API Error {response.status}"
                     
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8') if e.fp else 'No error details'
+            print(f"❌ HTTP Error {e.code}: {error_body}")
+            try:
+                error_data = json.loads(error_body)
+                if 'error' in error_data:
+                    return f"API Error: {error_data['error'].get('message', error_body)}"
+            except:
+                pass
+            return f"HTTP Error {e.code}: {error_body[:200]}"
         except Exception as e:
+            print(f"❌ Request Exception: {type(e).__name__}: {str(e)}")
             return f"Error: {str(e)}"
     
     def chat(self, message: str, include_history: bool = True) -> Dict[str, Any]:
         """Chat with AI and return structured response"""
         
-        # Prepare message with context
+        # Build comprehensive context with system prompt
+        context_parts = [self.system_prompt]
+        
+        # Add conversation history
         if include_history and self.conversation_history:
-            context_messages = []
+            context_parts.append("\n--- Previous Conversation ---")
             for entry in self.conversation_history[-5:]:
-                role = "Human" if entry['role'] == 'user' else "Assistant"
-                context_messages.append(f"{role}: {entry['content']}")
-            
-            context = "\n".join(context_messages)
-            full_message = f"Previous conversation:\n{context}\n\nCurrent message: {message}"
-        else:
-            full_message = message
+                role = "User" if entry['role'] == 'user' else "Assistant"
+                context_parts.append(f"{role}: {entry['content']}")
+            context_parts.append("--- End of Previous Conversation ---\n")
+        
+        # Add current user message
+        context_parts.append(f"\nUser Query: {message}\n")
+        context_parts.append("Provide a comprehensive, detailed response:")
+        
+        full_message = "\n".join(context_parts)
         
         # Get response
         response_text = self._make_request(full_message)

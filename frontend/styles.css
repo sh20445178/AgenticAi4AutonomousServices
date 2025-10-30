@@ -177,6 +177,15 @@ body {
     display: flex;
     flex-direction: column;
     background: var(--surface);
+    overflow: hidden; /* Prevent overflow */
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Ensure scrolling works in chat-messages */
+    position: relative;
 }
 
 .chat-header {
@@ -219,8 +228,31 @@ body {
 .chat-messages {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     scroll-behavior: smooth;
+    max-height: calc(100vh - 200px); /* Ensures scrollability */
+    min-height: 400px; /* Minimum height for flexibility */
+}
+
+/* Custom scrollbar for chat messages */
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 .welcome-message {
@@ -290,7 +322,34 @@ body {
     border-radius: 18px;
     position: relative;
     word-wrap: break-word;
-    line-height: 1.5;
+    word-break: break-word;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    max-height: none; /* Allow content to expand */
+}
+
+/* Scrollable content for very long messages */
+.message-content .message-text {
+    max-height: 600px; /* Maximum height before scrolling */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.message-content .message-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+.message-content .message-text::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.message-content .message-text::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.message-content .message-text::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .message.ai .message-content {
@@ -671,6 +730,27 @@ textarea:focus {
 .sql-block .code-content {
     padding: 16px;
     background: white;
+    overflow-x: auto; /* Horizontal scroll for long SQL */
+    max-width: 100%;
+}
+
+/* Scrollbar for SQL blocks */
+.sql-block .code-content::-webkit-scrollbar {
+    height: 6px;
+}
+
+.sql-block .code-content::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.sql-block .code-content::-webkit-scrollbar-thumb {
+    background: #90caf9;
+    border-radius: 3px;
+}
+
+.sql-block .code-content::-webkit-scrollbar-thumb:hover {
+    background: #64b5f6;
 }
 
 .sql-keyword {
@@ -701,6 +781,8 @@ textarea:focus {
 .code-block .code-content {
     padding: 16px;
     background: white;
+    overflow-x: auto; /* Horizontal scroll for long code */
+    max-width: 100%;
 }
 
 .code-block pre {
@@ -708,6 +790,32 @@ textarea:focus {
     background: transparent;
     border: none;
     padding: 0;
+    overflow-x: auto; /* Horizontal scroll */
+    white-space: pre; /* Preserve formatting */
+    max-width: 100%;
+}
+
+/* Scrollbar for code blocks */
+.code-block .code-content::-webkit-scrollbar,
+.code-block pre::-webkit-scrollbar {
+    height: 6px;
+}
+
+.code-block .code-content::-webkit-scrollbar-track,
+.code-block pre::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.code-block .code-content::-webkit-scrollbar-thumb,
+.code-block pre::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 3px;
+}
+
+.code-block .code-content::-webkit-scrollbar-thumb:hover,
+.code-block pre::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
 }
 
 /* Copy Button Styling */
